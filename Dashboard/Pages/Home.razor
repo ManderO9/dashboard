@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inject IServiceProvider mServiceProvider
 @inject ILocalStorageService mLocalStorageService
+@using Supabase;
 
 <PageTitle>Home</PageTitle>
 
@@ -8,10 +9,34 @@
 
 Welcome to your new app.
 
+@foreach(var idea in Ideas)
+{
+    <div>@idea.CreatedAt.ToString("g") : @idea.Text</div>
+}
+
+<button @onclick="AddIdea">Add a new idea</button>
 
 @code {
 
-    public async Task GetUsers()
+    private Client _supabase = new("", null);
+
+    private List<Idea> Ideas { get; set; } = [];
+
+    public async Task AddIdea()
+    {
+        var idea = new Idea
+        {
+            Text = "New idea",
+        };
+
+
+        var result = await _supabase.From<Idea>().Insert(idea);
+        
+        if(result.Model is not null)
+            Ideas.Add(result.Model);
+    }
+
+    public async Task GetIdeas()
     {
         // show current time
         // add the list of articles i find interesting in here
@@ -19,29 +44,26 @@ Welcome to your new app.
         // add list of ideas related to work in a list having the status: new, active, completed and cancelled.
 
 
-        var appSettings = mLocalStorageService.GetAppSettings();
-
-        var options = new Supabase.SupabaseOptions
-        {
-            AutoConnectRealtime = false
-        };
-        var supabase = new Supabase.Client(appSettings.SupabaseUrl, appSettings.SupabaseKey, options);
-        await supabase.InitializeAsync();
-
         // A result can be fetched like so.
-        var result = await supabase.From<City>().Get();
-        var cities = result.Models;
-
-        foreach(var city in cities)
-        {
-            Console.WriteLine($"City: {city.Name}, Country: {city.Name}");
-        }
+        var result = await _supabase.From<Idea>().Get();
+        Ideas.AddRange(result.Models);
 
     }
 
     protected override async Task OnInitializedAsync()
     {
-        await GetUsers();
+        var appSettings = mLocalStorageService.GetAppSettings();
+        var options = new SupabaseOptions
+        {
+            AutoConnectRealtime = false
+        };
+
+        _supabase = new Client(appSettings.SupabaseUrl, appSettings.SupabaseKey, options);
+
+        await _supabase.InitializeAsync();
+
+
+        await GetIdeas();
         await base.OnInitializedAsync();
     }
 }

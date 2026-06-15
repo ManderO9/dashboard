@@ -6,7 +6,7 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions options) : base(options) { }
 
-    public DbSet<City> City { get; set; }
+    public DbSet<Idea> Idea { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
