@@ -5,10 +5,8 @@ on:
   #   - cron: '0 2 * * *'
 
   # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: [ "main" ]
+  workflow_run:
+    workflows: ["test the app"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:

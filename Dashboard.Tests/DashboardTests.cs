@@ -32,6 +32,6 @@ public class DashboardTests
             .ToList();
 
         // Make sure they are equal
-        Assert.Equal(entities.Count, properties.Count + 1);
+        Assert.Equal(entities.Count, properties.Count);
     }
 }
