@@ -9,16 +9,7 @@
 Welcome to your new app.
 
 
-
-<br />
-<div>here are the errors</div>
-<div>
-    @ErrorMessage
-</div>
-
 @code {
-
-    public string ErrorMessage { get; set; } = "no error";
 
     public async Task GetUsers()
     {
@@ -28,11 +19,7 @@ Welcome to your new app.
         // add list of ideas related to work in a list having the status: new, active, completed and cancelled.
 
 
-        // add postgresql database context to the cli app and create and run migrations there
-        // add the database models to web project, and if not possible to a shared core project
-
         var appSettings = mLocalStorageService.GetAppSettings();
-
 
         var options = new Supabase.SupabaseOptions
         {
