@@ -19,6 +19,9 @@ jobs:
   deploy-to-github-pages:
   
     runs-on: ubuntu-latest
+
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET
