@@ -1,0 +1,31 @@
+﻿@page "/settings"
+@inject ILocalStorageService mLocalStorageService
+
+<PageTitle>Settings</PageTitle>
+
+<h1>Settings page</h1>
+
+<input type="text" @bind="SupabaseUrl" placeholder="Supabase URL" />
+<input type="text" @bind="SupabaseKey" placeholder="Supabase Key" />
+
+@code {
+
+    private string SupabaseUrl {
+        get => mLocalStorageService.GetAppSettings().SupabaseUrl;
+        set {
+            var settings = mLocalStorageService.GetAppSettings();
+            settings.SupabaseUrl = value;
+            mLocalStorageService.SaveAppSettings(settings);
+        }
+    }
+
+    private string SupabaseKey { 
+        get => mLocalStorageService.GetAppSettings().SupabaseKey;
+        set {
+            var settings = mLocalStorageService.GetAppSettings();
+            settings.SupabaseKey = value;
+            mLocalStorageService.SaveAppSettings(settings);
+        }
+    }
+
+}

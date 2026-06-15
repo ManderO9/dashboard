@@ -1,0 +1,60 @@
+﻿@page "/"
+@inject IServiceProvider mServiceProvider
+@inject ILocalStorageService mLocalStorageService
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+
+
+<br />
+<div>here are the errors</div>
+<div>
+    @ErrorMessage
+</div>
+
+@code {
+
+    public string ErrorMessage { get; set; } = "no error";
+
+    public async Task GetUsers()
+    {
+        // show current time
+        // add the list of articles i find interesting in here
+        // add the weather into here
+        // add list of ideas related to work in a list having the status: new, active, completed and cancelled.
+
+
+        // add postgresql database context to the cli app and create and run migrations there
+        // add the database models to web project, and if not possible to a shared core project
+
+        var appSettings = mLocalStorageService.GetAppSettings();
+
+
+        var options = new Supabase.SupabaseOptions
+        {
+            AutoConnectRealtime = false
+        };
+        var supabase = new Supabase.Client(appSettings.SupabaseUrl, appSettings.SupabaseKey, options);
+        await supabase.InitializeAsync();
+
+        // A result can be fetched like so.
+        var result = await supabase.From<City>().Get();
+        var cities = result.Models;
+
+        foreach(var city in cities)
+        {
+            Console.WriteLine($"City: {city.Name}, Country: {city.Name}");
+        }
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetUsers();
+        await base.OnInitializedAsync();
+    }
+}

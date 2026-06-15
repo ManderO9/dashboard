@@ -15,7 +15,7 @@ on:
 
 
 env:
-  PROJECT_NAME: Dashboard.csproj
+  PROJECT_NAME: Dashboard/Dashboard.csproj
 
 jobs:
   deploy-to-github-pages:
