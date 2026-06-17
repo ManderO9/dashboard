@@ -1,27 +1,28 @@
 ﻿@inherits LayoutComponentBase
+
+
 <div class="page">
     <div class="sidebar">
-        <NavMenu />
+        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            Home
+        </NavLink>
+        <NavLink class="nav-link" href="settings">
+            Settings
+        </NavLink>
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            <ErrorBoundary>
-                <ChildContent>
-                    @Body
-                </ChildContent> 
-                <ErrorContent>
-                    <div>An exception has been thrown</div>
-                    <div>exception message:</div>
-                    <div>@context.Message</div>
-                    <div>stack trace:</div>
-                    <div>@context.StackTrace</div>
-                </ErrorContent>
-            </ErrorBoundary>
-        </article>
+        <ErrorBoundary>
+            <ChildContent>
+                @Body
+            </ChildContent>
+            <ErrorContent>
+                <div>An exception has been thrown</div>
+                <div>exception message:</div>
+                <div>@context.Message</div>
+                <div>stack trace:</div>
+                <div>@context.StackTrace</div>
+            </ErrorContent>
+        </ErrorBoundary>
     </main>
 </div>

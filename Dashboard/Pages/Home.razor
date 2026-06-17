@@ -18,7 +18,7 @@ Welcome to your new app.
 
 @code {
 
-    private Client _supabase = new("", null);
+    private Client _supabase = default!;
 
     private List<Idea> Ideas { get; set; } = [];
 
@@ -38,11 +38,14 @@ Welcome to your new app.
 
     public async Task GetIdeas()
     {
+        // add the web awesome ui kit
+        // add list of news using gemini api
+        // -- make the ai prompt editable through the UI
+
+        // fix multiple deploy workflow runs at once in github actions
         // show current time
-        // add the list of articles i find interesting in here
         // add the weather into here
         // add list of ideas related to work in a list having the status: new, active, completed and cancelled.
-
 
         // A result can be fetched like so.
         var result = await _supabase.From<Idea>().Get();
