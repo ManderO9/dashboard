@@ -16,6 +16,10 @@
 
 <body>
     <script type="module" src="./web-awesome/webawesome.loader.js" data-webawesome="./web-awesome"></script>
+    <script type="module">
+        import { setIconPath } from './web-awesome/webawesome.js';
+        setIconPath('./assets/fontawesome/svgs');
+    </script>
 
     <div id="app">
         <svg class="loading-progress">

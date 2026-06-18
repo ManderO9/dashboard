@@ -1,18 +1,21 @@
 ﻿@inherits LayoutComponentBase
 
+<wa-page>
+    
+    <div slot="navigation-header">
+        <wa-button appearance="outlined" variant="neutral" onclick="document.documentElement.classList.toggle('wa-dark');">
+            <wa-icon name="moon"></wa-icon>
+        </wa-button>
+    </div>
 
-<div class="page">
-    <div class="sidebar">
+    <div slot="navigation" style="min-width:300px;">
         <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
             Home
         </NavLink>
         <NavLink class="nav-link" href="settings">
             Settings
         </NavLink>
-        <wa-button appearance="outlined" variant="neutral" onclick="document.documentElement.classList.toggle('wa-dark');">Change Theme</wa-button>
-
     </div>
-
     <main>
         <ErrorBoundary>
             <ChildContent>
@@ -27,4 +30,4 @@
             </ErrorContent>
         </ErrorBoundary>
     </main>
-</div>
+</wa-page>
