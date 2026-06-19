@@ -1,79 +1,18 @@
 ﻿@page "/"
 @inject ILocalStorageService mLocalStorageService
-@using Supabase;
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
-
-<wa-button variant="brand" onclick="document.documentElement.classList.toggle('wa-dark');">Click me!</wa-button>
-
-Welcome to your new app.
-
-@foreach(var idea in Ideas)
-{
-    <div>@idea.CreatedAt.ToString("g") : @idea.Text</div>
-}
-
-<button @onclick="AddIdea">Add a new idea</button>
-
 @code {
 
-    private Client _supabase = default!;
+    // save theme preference to local storage
+    // https://webawesome.com/docs/customizing#detecting-color-scheme-preference
 
-    private List<Idea> Ideas { get; set; } = [];
+    // add list of news using gemini api
+    // -- make the ai prompt editable through the UI
 
-    public async Task AddIdea()
-    {
-        var idea = new Idea
-        {
-            Text = "New idea",
-        };
-
-
-        var result = await _supabase.From<Idea>().Insert(idea);
-        
-        if(result.Model is not null)
-            Ideas.Add(result.Model);
-    }
-
-    public async Task GetIdeas()
-    {
-        // add sidebar menu with the theme icon in it at the top right of it
-
-
-
-        // save theme preference to local storage
-        // https://webawesome.com/docs/customizing#detecting-color-scheme-preference
-
-        // add list of news using gemini api
-        // -- make the ai prompt editable through the UI
-
-        // fix multiple deploy workflow runs at once in github actions
-        // show current time
-        // add the weather into here
-        // add list of ideas related to work in a list having the status: new, active, completed and cancelled.
-
-        // A result can be fetched like so.
-        var result = await _supabase.From<Idea>().Get();
-        Ideas.AddRange(result.Models);
-
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        var appSettings = mLocalStorageService.GetAppSettings();
-        var options = new SupabaseOptions
-        {
-            AutoConnectRealtime = false
-        };
-
-        _supabase = new Client(appSettings.SupabaseUrl, appSettings.SupabaseKey, options);
-
-        await _supabase.InitializeAsync();
-
-
-        await GetIdeas();
-        await base.OnInitializedAsync();
-    }
+    // fix multiple deploy workflow runs at once in github actions
+    // show current time
+    // add the weather into here
+    // add list of ideas related to work in a list having the status: new, active, completed and cancelled.
 }

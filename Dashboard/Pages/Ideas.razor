@@ -1,0 +1,52 @@
+﻿@page "/ideas"
+@using Supabase;
+@inject DataStore mDataStore
+
+
+
+<h3>Ideas</h3>
+
+@foreach(var idea in IdeasList)
+{
+    <div>@idea.CreatedAt.ToString("g") : @idea.Text</div>
+}
+
+<button @onclick="AddIdea">Add a new idea</button>
+
+
+<div dir="rtl" style="font-size:1.5rem; font-family: 'Noto Naskh Arabic'">
+    <div>يقول رَسُولُ اللَّهِ صلى الله عليه وسلم : </div>
+    <div>"‏ إِنَّ أَحَدَكُمْ يُجْمَعُ خَلْقُهُ فِي بَطْنِ أُمِّهِ أَرْبَعِينَ يَوْمًا، ثُمَّ يَكُونُ عَلَقَةً مِثْلَ ذَلِكَ، ثُمَّ يَكُونُ مُضْغَةً مِثْلَ ذَلِكَ، ثُمَّ يَبْعَثُ اللَّهُ مَلَكًا، فَيُؤْمَرُ بِأَرْبَعِ كَلِمَاتٍ، وَيُقَالُ لَهُ اكْتُبْ عَمَلَهُ وَرِزْقَهُ وَأَجَلَهُ وَشَقِيٌّ أَوْ سَعِيدٌ‏.‏ ثُمَّ يُنْفَخُ فِيهِ الرُّوحُ، فَإِنَّ الرَّجُلَ مِنْكُمْ لَيَعْمَلُ حَتَّى مَا يَكُونُ بَيْنَهُ وَبَيْنَ الْجَنَّةِ إِلاَّ ذِرَاعٌ، فَيَسْبِقُ عَلَيْهِ كِتَابُهُ، فَيَعْمَلُ بِعَمَلِ أَهْلِ النَّارِ، وَيَعْمَلُ حَتَّى مَا يَكُونُ بَيْنَهُ وَبَيْنَ النَّارِ إِلاَّ ذِرَاعٌ، فَيَسْبِقُ عَلَيْهِ الْكِتَابُ، فَيَعْمَلُ بِعَمَلِ أَهْلِ الْجَنَّةِ ‏"‏‏.</div>
+</div>
+
+
+@code {
+
+    private Client mSupabase = default!;
+
+    private List<Idea> IdeasList { get; set; } = [];
+
+    public async Task AddIdea()
+    {
+        var idea = new Idea
+        {
+            Text = "New idea",
+        };
+
+
+        var result = await mSupabase.From<Idea>().Insert(idea);
+
+        if(result.Model is not null)
+            IdeasList.Add(result.Model);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        mSupabase = await mDataStore.GetClientAsync();
+        var result = await mSupabase.From<Idea>().Get();
+        IdeasList.AddRange(result.Models);
+
+        await base.OnInitializedAsync();
+    }
+}
+

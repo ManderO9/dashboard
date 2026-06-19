@@ -1,5 +1,10 @@
 
 
+@font-face {
+    font-family: "Noto Naskh Arabic";
+    src: url("../assets/fonts/Noto_Naskh_Arabic/NotoNaskhArabic-VariableFont_wght.ttf") format("truetype");
+}
+
 wa-page[view="desktop"] {
     & [slot*="navigation"] {
         border-inline-end: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
@@ -8,6 +13,8 @@ wa-page[view="desktop"] {
 [slot="navigation-header"] {
     border-block-end: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-surface-border);
 }
+
+
 /* TODO: remove loading circle and replace it with somthing more nicer */
 .loading-progress {
     position: absolute;
