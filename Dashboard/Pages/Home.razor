@@ -1,9 +1,54 @@
 ﻿@page "/"
-@inject ILocalStorageService mLocalStorageService
+@using Microsoft.Extensions.AI;
+@inject DataStore mDataStore
+@inject IChatClient mChatClient
 
 <PageTitle>Home</PageTitle>
 
+
+@if(NewsList.Count == 0)
+{
+    <div>Loading the news for you blud...</div>
+}
+else
+{
+    @foreach(var article in NewsList)
+    {
+        <div>- @article</div>
+    }
+}
+
 @code {
+    private Supabase.Client mSupabase = default!;
+    private Prompt? NewsPrompt { get; set; }
+
+    private List<string> NewsList { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        mSupabase = await mDataStore.GetClientAsync();
+
+        var result = await mSupabase.From<Prompt>().Where(x => x.KeyName == PromptKeys.GetDailyNews).Get();
+        NewsPrompt = result.Model;
+
+        if(NewsPrompt is  null)
+        {
+            NewsPrompt = new()
+            {
+                KeyName = PromptKeys.GetDailyNews,
+                Text = "get the news for today",
+            };
+
+            await mSupabase.From<Prompt>().Insert([NewsPrompt]);
+        }
+
+        var newsResponse = await mChatClient.GetResponseAsync<List<string>>(NewsPrompt.Text);
+        NewsList = newsResponse.Result;
+
+        await base.OnInitializedAsync();
+    }
+
+    // change favicon 
 
     // save theme preference to local storage
     // https://webawesome.com/docs/customizing#detecting-color-scheme-preference

@@ -1,0 +1,14 @@
+﻿
+.settings-container > div > span {
+    display: inline-block;
+    margin-right: 2rem;
+    margin-bottom: 1rem;
+    vertical-align: top;
+    width:130px;
+}
+.settings-container > div > input {
+    display: inline-block;
+    max-width: 600px;
+    margin-bottom: 2rem;
+    vertical-align: top;
+}

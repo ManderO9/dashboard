@@ -1,0 +1,39 @@
+﻿@page "/prompts"
+@using Microsoft.Extensions.AI;
+@inject DataStore mDataStore
+@inject IChatClient mChatClient
+@inject NavigationManager mNavigationManager
+@using Humanizer;
+
+<h3 style="margin-bottom:3rem;">AI Prompts</h3>
+
+@if(PromptsList.Count == 0)
+{
+    <div>Loading AI promps from database...</div>
+}
+else
+{
+    @foreach(var prompt in PromptsList.OrderByDescending(x => x.CreatedAt))
+    {
+        <div><a href='./prompts/@prompt.KeyName'>@prompt.KeyName</a> : @prompt.Description.</div>
+        <div class="wa-justify-content-end" style="margin-bottom:2rem;">
+            <span class="wa-color-text-quiet">created @prompt.CreatedAt.Humanize()</span>
+        </div>
+    }
+}
+
+@code {
+
+    private Supabase.Client mSupabase = default!;
+
+    private List<Prompt> PromptsList { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        mSupabase = await mDataStore.GetClientAsync();
+        var result = await mSupabase.From<Prompt>().Get();
+        PromptsList.AddRange(result.Models);
+
+        await base.OnInitializedAsync();
+    }
+}

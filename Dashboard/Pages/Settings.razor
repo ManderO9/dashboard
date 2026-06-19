@@ -1,31 +1,109 @@
 ﻿@page "/settings"
 @inject ILocalStorageService mLocalStorageService
+@using System.Runtime.CompilerServices;
 
 <PageTitle>Settings</PageTitle>
 
+<input id="settingsKeyInput" hidden value="@AppSettings.SettingsLocalStorageKey" />
+<script>
+
+    function downloadSettings()
+    {
+        console.log("downloading settings...");
+
+        var settingsKey = document.querySelector("#settingsKeyInput").value;
+
+        var settings = localStorage.getItem(settingsKey);
+
+        var blob = new Blob([settings], {type: "application/json"});
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'dashboard-settings.json';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+
+    function uploadSettings ()
+    {
+        console.log("uploading settings...");
+
+        var settingsKey = document.querySelector("#settingsKeyInput").value;
+
+        const input = document.createElement("input");
+        input.type = "file";
+        input.onchange = e =>
+        {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () =>
+            {
+                localStorage.setItem(settingsKey, reader.result);
+                location.reload();
+            }
+
+            reader.readAsText(file);
+        };
+
+        input.click();
+    };
+
+    
+</script>
+
+
 <h1>Settings page</h1>
 
-<input type="text" @bind="SupabaseUrl" placeholder="Supabase URL" />
-<input type="text" @bind="SupabaseKey" placeholder="Supabase Key" />
+<h3 style="margin-top:3rem;">Database settings</h3>
+<div class="settings-container">
+    <div>
+        <span>Supabase Url</span>
+        <input type="text" @bind="SupabaseUrl" placeholder="Supabase URL" />
+    </div>
+    <div>
+        <span>Supabase Key</span>
+        <input type="text" @bind="SupabaseKey" placeholder="Supabase Key" />
+    </div>
+</div>
+
+<h3 style="margin-top:3rem;">Ai Model settings</h3>
+<div class="settings-container">
+    <div>
+        <span>AI Model Name</span>
+        <input type="text" @bind="AiModelName" placeholder="AI Model Name" />
+    </div>
+    <div>
+        <span>AI API Key</span>
+        <input type="text" @bind="AiApiKey" placeholder="AI API Key" />
+    </div>
+</div>
+
+<div class="wa-justify-content-end" style="margin-bottom:2rem;margin-top:3rem;">
+    <wa-button size="s" appearance="outlined" variant="brand" onclick="downloadSettings()">Download Settings</wa-button>
+    <wa-button size="s" appearance="outlined" variant="brand" onclick="uploadSettings()" style="margin-left:2rem;">Upload Settings</wa-button>
+</div>
+
+
 
 @code {
+    // Make sure that the name of the property in this page is the same as the name of the property in the appsettings class for the helpers to work
+    private string SupabaseUrl { get => GetProp(); set => SetProp(value); }
+    private string SupabaseKey { get => GetProp(); set => SetProp(value); }
+    private string AiModelName { get => GetProp(); set => SetProp(value); }
+    private string AiApiKey { get => GetProp(); set => SetProp(value); }
 
-    private string SupabaseUrl {
-        get => mLocalStorageService.GetAppSettings().SupabaseUrl;
-        set {
-            var settings = mLocalStorageService.GetAppSettings();
-            settings.SupabaseUrl = value;
-            mLocalStorageService.SaveAppSettings(settings);
-        }
+    private string GetProp([CallerMemberName] string name = "")
+    {
+        var settings = mLocalStorageService.GetAppSettings();
+        return settings.GetType().GetProperty(name)?.GetValue(settings) as string ?? string.Empty;
     }
 
-    private string SupabaseKey { 
-        get => mLocalStorageService.GetAppSettings().SupabaseKey;
-        set {
-            var settings = mLocalStorageService.GetAppSettings();
-            settings.SupabaseKey = value;
-            mLocalStorageService.SaveAppSettings(settings);
-        }
+    private void SetProp(string value, [CallerMemberName] string name = "")
+    {
+        var settings = mLocalStorageService.GetAppSettings();
+        settings.GetType().GetProperty(name)?.SetValue(settings, value);
+        mLocalStorageService.SaveAppSettings(settings);
     }
-
 }

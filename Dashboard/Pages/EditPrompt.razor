@@ -1,0 +1,82 @@
+﻿@page "/prompts/{KeyName}"
+@using Microsoft.Extensions.AI;
+@inject DataStore mDataStore
+@inject IChatClient mChatClient
+
+
+@if(Prompt is null)
+{
+    <div>loading prompt details...</div>
+}
+else
+{
+    <h3>Prompt: @Prompt.KeyName</h3>
+
+    <h4 style="margin-top:3rem;">Description</h4>
+    <textarea rows="1" @bind="Prompt.Description" />
+    
+    <h4 style="margin-top:3rem;">Main Content</h4>
+    <textarea rows="10" @bind="Prompt.Text" />
+    
+    <div class="wa-justify-content-end" style="margin-top:2rem;">
+        <wa-button size="s" appearance="outlined" variant="brand" @onclick="RunPrompt">Test Prompt</wa-button>
+    </div>
+    
+    <h4 style="margin-top:3rem;">Result from running the prompt:</h4>
+    <textarea rows="5" @bind="PromptExecutionResult" readonly />
+    
+    <div class="wa-justify-content-end" style="margin-bottom:3rem;margin-top:2rem;">
+        <wa-button size="s" appearance="outlined" variant="brand" @onclick="SavePromptChanges" disabled="@(InitialPromptText == Prompt.Text && InitialPromptDescription == Prompt.Description)">Save Prompt Changes</wa-button>
+    </div>
+}
+
+
+@code {
+
+    #region Members
+
+    [Parameter]
+    public string KeyName { get; set; } = string.Empty;
+
+    private Supabase.Client mSupabase = default!;
+
+    private Prompt? Prompt { get; set; }
+    private string InitialPromptText { get; set; } = string.Empty;
+    private string InitialPromptDescription { get; set; } = string.Empty;
+    private string PromptExecutionResult { get; set; } = string.Empty;
+
+    #endregion
+
+    #region Methods
+
+    public async Task RunPrompt()
+    {
+        if(Prompt is null) return;
+
+        var newsResponse = await mChatClient.GetResponseAsync<string>(Prompt.Text);
+        PromptExecutionResult = newsResponse.Result;
+    }
+
+    public async Task SavePromptChanges()
+    {
+        if(Prompt is null) return;
+        var result = await mSupabase.From<Prompt>().Upsert(Prompt);
+        Prompt = result.Model;
+        InitialPromptText = Prompt?.Text ?? string.Empty;
+        InitialPromptDescription = Prompt?.Description ?? string.Empty;
+    }
+
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        mSupabase = await mDataStore.GetClientAsync();
+        var result = await mSupabase.From<Prompt>().Get();
+
+        Prompt = result.Model;
+        InitialPromptText = Prompt?.Text ?? string.Empty;
+        InitialPromptDescription = Prompt?.Description ?? string.Empty;
+
+        await base.OnInitializedAsync();
+    }
+}
