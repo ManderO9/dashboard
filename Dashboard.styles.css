@@ -1,0 +1,15 @@
+/* /Pages/settings.razor.rz.scp.css */
+
+.settings-container > div > span[b-7vtv2z0epu] {
+    display: inline-block;
+    margin-right: 2rem;
+    margin-bottom: 1rem;
+    vertical-align: top;
+    width:130px;
+}
+.settings-container > div > input[b-7vtv2z0epu] {
+    display: inline-block;
+    max-width: 600px;
+    margin-bottom: 2rem;
+    vertical-align: top;
+}
