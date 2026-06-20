@@ -1,17 +1,22 @@
 ﻿@page "/ideas"
 @using Supabase;
-@inject DataStore mDataStore
-
+@using Microsoft.Extensions.AI;
+@inject DataStore mDataStore;
+@inject IChatClient mChatClient;
 
 
 <h3>Ideas</h3>
 
-@foreach(var idea in IdeasList)
+<div class="wa-justify-content-end">
+    <wa-button size="s" appearance="outlined" variant="brand" @onclick="NewIdeaAsync">Suggest An Idea</wa-button>
+    <wa-button size="s" appearance="outlined" variant="brand" @onclick="NewIdeaAsync">Create An Idea</wa-button>
+</div>
+
+
+@foreach(var idea in IdeasList.OrderByDescending(x=> x.CreatedAt))
 {
     <div>@idea.CreatedAt.ToString("g") : @idea.Text</div>
 }
-
-<button @onclick="AddIdea">Add a new idea</button>
 
 
 <div dir="rtl" style="font-size:1.5rem; font-family: 'Noto Naskh Arabic'">
@@ -25,20 +30,7 @@
     private Client mSupabase = default!;
 
     private List<Idea> IdeasList { get; set; } = [];
-
-    public async Task AddIdea()
-    {
-        var idea = new Idea
-        {
-            Text = "New idea",
-        };
-
-
-        var result = await mSupabase.From<Idea>().Insert(idea);
-
-        if(result.Model is not null)
-            IdeasList.Add(result.Model);
-    }
+    private Prompt? CreateNewIdeaPrompt;
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,6 +39,37 @@
         IdeasList.AddRange(result.Models);
 
         await base.OnInitializedAsync();
+    }
+
+    public async Task NewIdeaAsync()
+    {
+        // Get ai idea creation prompt
+        if(CreateNewIdeaPrompt is null)
+        {
+            var result = await mSupabase.From<Prompt>().Where(x => x.KeyName == PromptKeys.CreateNewIdea).Get();
+            CreateNewIdeaPrompt = result.Model;
+
+            if(CreateNewIdeaPrompt is null)
+            {
+                CreateNewIdeaPrompt = new()
+                {
+                    KeyName = PromptKeys.CreateNewIdea,
+                    Text = "give me an idea for a side hustle that i can do online in one sentence",
+                };
+                await mSupabase.From<Prompt>().Insert([CreateNewIdeaPrompt]);
+            }
+        }
+
+        // Create the idea
+        var idea = new Idea
+        {
+            Text = (await mChatClient.GetResponseAsync<string>(CreateNewIdeaPrompt.Text)).Result,
+        };
+
+        // Save the idea to the database
+        var insertionResult = await mSupabase.From<Idea>().Insert(idea);
+        if(insertionResult.Model is not null)
+            IdeasList.Insert(0, insertionResult.Model);
     }
 }
 

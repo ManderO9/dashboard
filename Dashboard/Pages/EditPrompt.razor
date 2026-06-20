@@ -14,17 +14,17 @@ else
 
     <h4 style="margin-top:3rem;">Description</h4>
     <textarea rows="1" @bind="Prompt.Description" />
-    
+
     <h4 style="margin-top:3rem;">Main Content</h4>
     <textarea rows="10" @bind="Prompt.Text" />
-    
+
     <div class="wa-justify-content-end" style="margin-top:2rem;">
         <wa-button size="s" appearance="outlined" variant="brand" @onclick="RunPrompt">Test Prompt</wa-button>
     </div>
-    
+
     <h4 style="margin-top:3rem;">Result from running the prompt:</h4>
     <textarea rows="5" @bind="PromptExecutionResult" readonly />
-    
+
     <div class="wa-justify-content-end" style="margin-bottom:3rem;margin-top:2rem;">
         <wa-button size="s" appearance="outlined" variant="brand" @onclick="SavePromptChanges" disabled="@(InitialPromptText == Prompt.Text && InitialPromptDescription == Prompt.Description)">Save Prompt Changes</wa-button>
     </div>
@@ -71,7 +71,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         mSupabase = await mDataStore.GetClientAsync();
-        var result = await mSupabase.From<Prompt>().Get();
+        var result = await mSupabase.From<Prompt>().Where(x => x.KeyName == KeyName).Get();
 
         Prompt = result.Model;
         InitialPromptText = Prompt?.Text ?? string.Empty;

@@ -24,4 +24,5 @@ public class Prompt : BaseModel
 public class PromptKeys
 {
     public const string GetDailyNews = "get_daily_news";
+    public const string CreateNewIdea = "create_new_idea";
 }

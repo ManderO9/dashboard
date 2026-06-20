@@ -18,9 +18,14 @@ builder.Services.AddChatClient(sp => {
     var localStorage = sp.GetRequiredService<ILocalStorageService>();
     var settings = localStorage.GetAppSettings();
 
-    return new Client(apiKey: settings.AiApiKey).AsIChatClient(settings.AiModelName);
+    var apiKey = string.IsNullOrWhiteSpace(settings.AiApiKey) ? "NO-Key" : settings.AiApiKey;
+    var aiModelName = string.IsNullOrWhiteSpace(settings.AiModelName) ? "NO-Model" : settings.AiModelName;
+
+    return new Client(apiKey: apiKey).AsIChatClient(aiModelName);
 });
 
 var app = builder.Build();
 
 await app.RunAsync();
+
+
