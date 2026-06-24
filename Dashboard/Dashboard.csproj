@@ -19,8 +19,5 @@
 		<PackageReference Include="Microsoft.Extensions.AI" Version="10.6.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\bootstrap\" />
-  </ItemGroup>
 
 </Project>

@@ -2,13 +2,9 @@
 @using Microsoft.Extensions.AI;
 @inject DataStore mDataStore
 @inject IChatClient mChatClient
+@inject ToastService mToastService;
 
-
-@if(Prompt is null)
-{
-    <div>loading prompt details...</div>
-}
-else
+@if(Prompt is not null)
 {
     <h3>Prompt: @Prompt.KeyName</h3>
 
@@ -53,14 +49,14 @@ else
     {
         if(Prompt is null) return;
 
-        var newsResponse = await mChatClient.GetResponseAsync<string>(Prompt.Text);
+        var newsResponse = await mToastService.ShowToastForTaskAsync(mChatClient.GetResponseAsync<string>(Prompt.Text), "running prompt");
         PromptExecutionResult = newsResponse.Result;
     }
 
     public async Task SavePromptChanges()
     {
         if(Prompt is null) return;
-        var result = await mSupabase.From<Prompt>().Upsert(Prompt);
+        var result = await mToastService.ShowToastForTaskAsync(mSupabase.From<Prompt>().Upsert(Prompt), "saving changes");
         Prompt = result.Model;
         InitialPromptText = Prompt?.Text ?? string.Empty;
         InitialPromptDescription = Prompt?.Description ?? string.Empty;
@@ -71,7 +67,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         mSupabase = await mDataStore.GetClientAsync();
-        var result = await mSupabase.From<Prompt>().Where(x => x.KeyName == KeyName).Get();
+        var result = await mToastService.ShowToastForTaskAsync(mSupabase.From<Prompt>().Where(x => x.KeyName == KeyName).Get(), "loading prompt details");
 
         Prompt = result.Model;
         InitialPromptText = Prompt?.Text ?? string.Empty;

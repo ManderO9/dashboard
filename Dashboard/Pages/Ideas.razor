@@ -3,6 +3,7 @@
 @using Microsoft.Extensions.AI;
 @inject DataStore mDataStore;
 @inject IChatClient mChatClient;
+@inject ToastService mToastService;
 
 
 <h3>Ideas</h3>
@@ -13,7 +14,7 @@
 </div>
 
 
-@foreach(var idea in IdeasList.OrderByDescending(x=> x.CreatedAt))
+@foreach(var idea in IdeasList.OrderByDescending(x => x.CreatedAt))
 {
     <div>@idea.CreatedAt.ToString("g") : @idea.Text</div>
 }
@@ -35,7 +36,7 @@
     protected override async Task OnInitializedAsync()
     {
         mSupabase = await mDataStore.GetClientAsync();
-        var result = await mSupabase.From<Idea>().Get();
+        var result = await mToastService.ShowToastForTaskAsync(mSupabase.From<Idea>().Get(), "loading ideas");
         IdeasList.AddRange(result.Models);
 
         await base.OnInitializedAsync();
@@ -46,7 +47,7 @@
         // Get ai idea creation prompt
         if(CreateNewIdeaPrompt is null)
         {
-            var result = await mSupabase.From<Prompt>().Where(x => x.KeyName == PromptKeys.CreateNewIdea).Get();
+            var result = await mToastService.ShowToastForTaskAsync(mSupabase.From<Prompt>().Where(x => x.KeyName == PromptKeys.CreateNewIdea).Get(), "loading prompt");
             CreateNewIdeaPrompt = result.Model;
 
             if(CreateNewIdeaPrompt is null)
@@ -63,11 +64,11 @@
         // Create the idea
         var idea = new Idea
         {
-            Text = (await mChatClient.GetResponseAsync<string>(CreateNewIdeaPrompt.Text)).Result,
+            Text = (await mToastService.ShowToastForTaskAsync(mChatClient.GetResponseAsync<string>(CreateNewIdeaPrompt.Text), "getting idea from AI")).Result,
         };
 
         // Save the idea to the database
-        var insertionResult = await mSupabase.From<Idea>().Insert(idea);
+        var insertionResult = await mToastService.ShowToastForTaskAsync(mSupabase.From<Idea>().Insert(idea), "saving idea");
         if(insertionResult.Model is not null)
             IdeasList.Insert(0, insertionResult.Model);
     }

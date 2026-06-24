@@ -1,21 +1,15 @@
 ﻿@page "/"
 @using Microsoft.Extensions.AI;
-@inject DataStore mDataStore
-@inject IChatClient mChatClient
+@inject DataStore mDataStore;
+@inject IChatClient mChatClient;
+@inject ToastService mToastService
 
 <PageTitle>Home</PageTitle>
 
 
-@if(NewsList.Count == 0)
+@foreach(var article in NewsList)
 {
-    <div>@StatusMessage</div>
-}
-else
-{
-    @foreach(var article in NewsList)
-    {
-        <div>- @article</div>
-    }
+    <div>- @article</div>
 }
 
 @code {
@@ -24,14 +18,12 @@ else
 
     private List<string> NewsList { get; set; } = [];
 
-    public string StatusMessage { get; set; } = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         mSupabase = await mDataStore.GetClientAsync();
 
-        StatusMessage = "loading prompts from the database...";
-        var result = await mSupabase.From<Prompt>().Where(x => x.KeyName == PromptKeys.GetDailyNews).Get();
+        var result = await mToastService.ShowToastForTaskAsync(mSupabase.From<Prompt>().Where(x => x.KeyName == PromptKeys.GetDailyNews).Get(), "loading prompt");
         NewsPrompt = result.Model;
 
         if(NewsPrompt is  null)
@@ -45,23 +37,20 @@ else
             await mSupabase.From<Prompt>().Insert([NewsPrompt]);
         }
 
-        StatusMessage = "getting the news from the ai agent...";
-        StateHasChanged();
-        var newsResponse = await mChatClient.GetResponseAsync<List<string>>(NewsPrompt.Text);
+        var newsResponse = await mToastService.ShowToastForTaskAsync(mChatClient.GetResponseAsync<List<string>>(NewsPrompt.Text), "getting the news");
         NewsList = newsResponse.Result;
 
         await base.OnInitializedAsync();
     }
-    
-    // add a notification/message popup that will show to users whenever they click any button
 
+    
     // add an ai prompt that will suggest an idea when you create a new one, and you can have two buttons, one to suggest a new idea and another
     // to create a new idea that you will add.
-    
 
     // for each article, add a button at the end to navigate to google and search the sentence directly there to find out more and add the date filter
     // to each one of those searches based on the category of the news (daily, last day, last week, last month)
 
+    
     // change favicon 
 
     // save theme preference to local storage
@@ -78,5 +67,4 @@ else
     
     // add list of ideas related to work in a list having the status: new, active, completed and cancelled.
 
-    
 }
