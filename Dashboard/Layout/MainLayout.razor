@@ -1,18 +1,25 @@
 ﻿@inherits LayoutComponentBase
 
 <wa-page>
-    
+
     <div slot="navigation-header">
         <wa-button appearance="outlined" variant="neutral" onclick="document.documentElement.classList.toggle('wa-dark');">
             <wa-icon name="moon"></wa-icon>
         </wa-button>
     </div>
 
+    <script>
+        function closeMobileNavigation(){
+            var drawer = document.querySelector('wa-page').shadowRoot.querySelector('wa-drawer');
+            if(drawer) drawer.open = false
+        }
+    </script>
+
     <div slot="navigation" style="min-width:300px;">
-        <NavLink href="" Match="NavLinkMatch.All">Home</NavLink>
-        <NavLink href="ideas">Ideas</NavLink>
-        <NavLink href="prompts">AI Prompts</NavLink>
-        <NavLink href="settings">Settings</NavLink>
+        <NavLink onclick="closeMobileNavigation()" href="" Match="NavLinkMatch.All">Home</NavLink>
+        <NavLink onclick="closeMobileNavigation()" href="ideas">Ideas</NavLink>
+        <NavLink onclick="closeMobileNavigation()" href="prompts">AI Prompts</NavLink>
+        <NavLink onclick="closeMobileNavigation()" href="settings">Settings</NavLink>
     </div>
     <main>
         <ErrorBoundary>

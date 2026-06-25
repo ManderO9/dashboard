@@ -1,30 +1,46 @@
 ﻿@page "/ideas"
-@using Supabase;
-@using Microsoft.Extensions.AI;
 @inject DataStore mDataStore;
 @inject IChatClient mChatClient;
 @inject ToastService mToastService;
+@inject IJSRuntime JSRuntime
 
 
-<h3>Ideas</h3>
+<h1>Ideas page</h1>
 
-<div class="wa-justify-content-end">
-    <wa-button size="s" appearance="outlined" variant="brand" @onclick="NewIdeaAsync">Suggest An Idea</wa-button>
-    <wa-button size="s" appearance="outlined" variant="brand" @onclick="NewIdeaAsync">Create An Idea</wa-button>
+
+
+<div style="margin-bottom:1rem; margin-top:3rem;">New Idea</div>
+<textarea @bind="NewIdeaText" rows="3"></textarea>
+
+<div class="wa-justify-content-end" style="margin-top:1rem;">
+    <wa-button size="s" appearance="outlined" variant="brand" @onclick="SuggestIdeaAsync" style="margin-right:2rem;"><wa-icon slot="start" name="lightbulb"></wa-icon>Suggest An Idea</wa-button>
+    <wa-button size="s" appearance="outlined" variant="brand" @onclick="SaveIdeaAsync" disabled="@string.IsNullOrWhiteSpace(NewIdeaText)"><wa-icon slot="start" name="plus"></wa-icon>Save Idea</wa-button>
 </div>
+<wa-divider style="margin-bottom:3rem; margin-top:3rem;"></wa-divider>
 
+
+<wa-dialog label="Delete Idea ?" id="delete-confiration-dialog" light-dismiss>
+    <div>@IdeaToDelete?.Text</div>
+    <wa-button slot="footer" variant="danger" appearance="outlined" size="s" @onclick=DeleteIdeaAsync>
+        Delete
+        <wa-icon slot="start" name="trash-can"></wa-icon>
+
+    </wa-button>
+</wa-dialog>
 
 @foreach(var idea in IdeasList.OrderByDescending(x => x.CreatedAt))
 {
-    <div>@idea.CreatedAt.ToString("g") : @idea.Text</div>
+    <div style="margin-bottom:2rem;padding:1rem 1.5rem; background:var(--wa-color-neutral-fill-quiet)" class="wa-border-radius-l">
+        <div>@idea.Text</div>
+        <div class="wa-justify-content-space-between">
+            <span class="wa-color-text-quiet">@idea.CreatedAt.Humanize()</span>
+            <wa-button appearance="outlined" variant="danger" @onclick="() => { IdeaToDelete = idea; }" size="xs" data-dialog="open delete-confiration-dialog">
+                Delete
+                <wa-icon slot="start" name="trash-can"></wa-icon>
+            </wa-button>
+        </div>
+    </div>
 }
-
-
-<div dir="rtl" style="font-size:1.5rem; font-family: 'Noto Naskh Arabic'">
-    <div>يقول رَسُولُ اللَّهِ صلى الله عليه وسلم : </div>
-    <div>"‏ إِنَّ أَحَدَكُمْ يُجْمَعُ خَلْقُهُ فِي بَطْنِ أُمِّهِ أَرْبَعِينَ يَوْمًا، ثُمَّ يَكُونُ عَلَقَةً مِثْلَ ذَلِكَ، ثُمَّ يَكُونُ مُضْغَةً مِثْلَ ذَلِكَ، ثُمَّ يَبْعَثُ اللَّهُ مَلَكًا، فَيُؤْمَرُ بِأَرْبَعِ كَلِمَاتٍ، وَيُقَالُ لَهُ اكْتُبْ عَمَلَهُ وَرِزْقَهُ وَأَجَلَهُ وَشَقِيٌّ أَوْ سَعِيدٌ‏.‏ ثُمَّ يُنْفَخُ فِيهِ الرُّوحُ، فَإِنَّ الرَّجُلَ مِنْكُمْ لَيَعْمَلُ حَتَّى مَا يَكُونُ بَيْنَهُ وَبَيْنَ الْجَنَّةِ إِلاَّ ذِرَاعٌ، فَيَسْبِقُ عَلَيْهِ كِتَابُهُ، فَيَعْمَلُ بِعَمَلِ أَهْلِ النَّارِ، وَيَعْمَلُ حَتَّى مَا يَكُونُ بَيْنَهُ وَبَيْنَ النَّارِ إِلاَّ ذِرَاعٌ، فَيَسْبِقُ عَلَيْهِ الْكِتَابُ، فَيَعْمَلُ بِعَمَلِ أَهْلِ الْجَنَّةِ ‏"‏‏.</div>
-</div>
-
 
 @code {
 
@@ -33,16 +49,19 @@
     private List<Idea> IdeasList { get; set; } = [];
     private Prompt? CreateNewIdeaPrompt;
 
+    private string NewIdeaText { get; set; } = string.Empty;
+    private Idea? IdeaToDelete { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         mSupabase = await mDataStore.GetClientAsync();
-        var result = await mToastService.ShowToastForTaskAsync(mSupabase.From<Idea>().Get(), "loading ideas");
+        var result = await mToastService.ShowToastForTaskAsync(mSupabase.From<Idea>().Where(x => x.Status != Status.Deleted).Get(), "loading ideas");
         IdeasList.AddRange(result.Models);
 
         await base.OnInitializedAsync();
     }
 
-    public async Task NewIdeaAsync()
+    public async Task SuggestIdeaAsync()
     {
         // Get ai idea creation prompt
         if(CreateNewIdeaPrompt is null)
@@ -60,11 +79,15 @@
                 await mSupabase.From<Prompt>().Insert([CreateNewIdeaPrompt]);
             }
         }
+        NewIdeaText = (await mToastService.ShowToastForTaskAsync(mChatClient.GetResponseAsync<string>(CreateNewIdeaPrompt.Text), "getting idea from AI")).Result;
+    }
 
+    public async Task SaveIdeaAsync()
+    {
         // Create the idea
         var idea = new Idea
         {
-            Text = (await mToastService.ShowToastForTaskAsync(mChatClient.GetResponseAsync<string>(CreateNewIdeaPrompt.Text), "getting idea from AI")).Result,
+            Text = NewIdeaText,
         };
 
         // Save the idea to the database
@@ -72,5 +95,28 @@
         if(insertionResult.Model is not null)
             IdeasList.Insert(0, insertionResult.Model);
     }
+
+    public async Task DeleteIdeaAsync()
+    {
+        if(IdeaToDelete is null)
+        {
+            await mToastService.ShowAsync("no idea selected");
+            return;
+        }
+
+        // Close the dialog
+        await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('delete-confiration-dialog').open = false");
+
+        // Delete the idea
+        var result = await mToastService.ShowToastForTaskAsync(
+                 mSupabase.From<Idea>().Where(x => x.Id == IdeaToDelete.Id).Set(x => x.Status, Status.Deleted).Update(),
+                 "deleting idea");
+
+
+        // Remove the idea from the list
+        if(result.Model is not null)
+            IdeasList.RemoveAll(x => x.Id == result.Model.Id);
+    }
+
 }
 

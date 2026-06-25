@@ -5,18 +5,51 @@
 @inject ToastService mToastService
 
 <PageTitle>Home</PageTitle>
+<h1>Home page</h1>
 
-
-@foreach(var article in NewsList)
+@if(NewsResponse is not null)
 {
-    <div>- @article</div>
+    <div class="wa-color-text-link">today's news</div>
+    foreach(var article in NewsResponse.Today)
+    {
+        <div>- @article</div>
+    }
+
+    <div class="wa-color-text-link">yesterday's news</div>
+
+    foreach(var article in NewsResponse.Yesterday)
+    {
+        <div>- @article</div>
+    }
+
+    <div class="wa-color-text-link">last week's news</div>
+
+    foreach(var article in NewsResponse.LastWeek)
+    {
+        <div>- @article</div>
+    }
+
+    <div class="wa-color-text-link">last month's news</div>
+
+    foreach(var article in NewsResponse.LastMonth)
+    {
+        <div>- @article</div>
+    }
 }
+
+
+
+
+<div dir="rtl" style="font-size:1.5rem; font-family: 'Noto Naskh Arabic'">
+    <div>يقول رَسُولُ اللَّهِ صلى الله عليه وسلم : </div>
+    <div>"‏ إِنَّ أَحَدَكُمْ يُجْمَعُ خَلْقُهُ فِي بَطْنِ أُمِّهِ أَرْبَعِينَ يَوْمًا، ثُمَّ يَكُونُ عَلَقَةً مِثْلَ ذَلِكَ، ثُمَّ يَكُونُ مُضْغَةً مِثْلَ ذَلِكَ، ثُمَّ يَبْعَثُ اللَّهُ مَلَكًا، فَيُؤْمَرُ بِأَرْبَعِ كَلِمَاتٍ، وَيُقَالُ لَهُ اكْتُبْ عَمَلَهُ وَرِزْقَهُ وَأَجَلَهُ وَشَقِيٌّ أَوْ سَعِيدٌ‏.‏ ثُمَّ يُنْفَخُ فِيهِ الرُّوحُ، فَإِنَّ الرَّجُلَ مِنْكُمْ لَيَعْمَلُ حَتَّى مَا يَكُونُ بَيْنَهُ وَبَيْنَ الْجَنَّةِ إِلاَّ ذِرَاعٌ، فَيَسْبِقُ عَلَيْهِ كِتَابُهُ، فَيَعْمَلُ بِعَمَلِ أَهْلِ النَّارِ، وَيَعْمَلُ حَتَّى مَا يَكُونُ بَيْنَهُ وَبَيْنَ النَّارِ إِلاَّ ذِرَاعٌ، فَيَسْبِقُ عَلَيْهِ الْكِتَابُ، فَيَعْمَلُ بِعَمَلِ أَهْلِ الْجَنَّةِ ‏"‏‏.</div>
+</div>
 
 @code {
     private Supabase.Client mSupabase = default!;
     private Prompt? NewsPrompt { get; set; }
 
-    private List<string> NewsList { get; set; } = [];
+    private NewsAIResponse? NewsResponse { get; set; }
 
 
     protected override async Task OnInitializedAsync()
@@ -26,7 +59,7 @@
         var result = await mToastService.ShowToastForTaskAsync(mSupabase.From<Prompt>().Where(x => x.KeyName == PromptKeys.GetDailyNews).Get(), "loading prompt");
         NewsPrompt = result.Model;
 
-        if(NewsPrompt is  null)
+        if(NewsPrompt is null)
         {
             NewsPrompt = new()
             {
@@ -37,34 +70,31 @@
             await mSupabase.From<Prompt>().Insert([NewsPrompt]);
         }
 
-        var newsResponse = await mToastService.ShowToastForTaskAsync(mChatClient.GetResponseAsync<List<string>>(NewsPrompt.Text), "getting the news");
-        NewsList = newsResponse.Result;
+        var newsResponse = await mToastService.ShowToastForTaskAsync(mChatClient.GetResponseAsync<NewsAIResponse>(NewsPrompt.Text), "getting the news");
+        NewsResponse = newsResponse.Result;
 
         await base.OnInitializedAsync();
     }
 
-    
-    // add an ai prompt that will suggest an idea when you create a new one, and you can have two buttons, one to suggest a new idea and another
-    // to create a new idea that you will add.
+    // get the news from grok instead of gemini
+    // https://grok.com/
+
+    // add the list of existing ideas into the prompt to suggest similar/different ideas by the ai
 
     // for each article, add a button at the end to navigate to google and search the sentence directly there to find out more and add the date filter
     // to each one of those searches based on the category of the news (daily, last day, last week, last month)
 
-    
-    // change favicon 
+    // change favicon
 
     // save theme preference to local storage
     // https://webawesome.com/docs/customizing#detecting-color-scheme-preference
 
-    // add list of news using gemini api
-    // make the news split into mutliple categories: news for today, yesterday, last week, and last month
-
     // fix multiple deploy workflow runs at once in github actions
-    
+
     // show current time
-    
+
     // add the weather into here
-    
+
     // add list of ideas related to work in a list having the status: new, active, completed and cancelled.
 
 }
